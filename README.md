@@ -115,7 +115,3 @@
 最后看一下实现的效果图：
 ![实现效果图](http://i4.buimg.com/e6674a91804df4e4.gif)
 
-
-### <font color ="red"> 源码地址：[AndroidKeyboard](https://github.com/zzzlw/AndroidKeyboard) 
-
-###  技术博客：[Wells'Note](http://www.zhangliwei.date) </font>

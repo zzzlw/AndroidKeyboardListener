@@ -1,1 +1,8 @@
 # Created by .ignore support plugin (hsz.mobi)
+/build.gradle
+.gradle
+/local.properties
+/build
+.*
+!.gitignore
+app.iml

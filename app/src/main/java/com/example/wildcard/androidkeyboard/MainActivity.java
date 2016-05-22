@@ -84,9 +84,8 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
 
         @Override
         public void onGlobalLayout() {
-            // 应用可以显示的区域。此处包括应用占用的区域，
+            // 应用可以显示的区域。此处包括应用占用的区域，包括标题栏不包括状态栏
             Rect r = new Rect();
-            // 状态栏高度以及ActionBar 高度
             layoutMain.getWindowVisibleDisplayFrame(r);
             // 键盘最小高度
             int minKeyboardHeight = 150;
@@ -94,19 +93,19 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
             int statusBarHeight = getStatusBarHeight(mContext);
             // 屏幕高度,不含虚拟按键的高度
             int screenHeight = layoutMain.getRootView().getHeight();
-            // 在不显示软键盘时，heightDiff等于状态栏的高度
+            // 在不显示软键盘时，height等于状态栏的高度
             int height = screenHeight - (r.bottom - r.top);
 
 
             if (ShowKeyboard) {
-                // 如果软键盘是弹出的状态，并且heightDiff小于等于状态栏高度，
+                // 如果软键盘是弹出的状态，并且height小于等于状态栏高度，
                 // 说明这时软键盘已经收起
                 if (height - statusBarHeight < minKeyboardHeight) {
                     ShowKeyboard = false;
                     Toast.makeText(mContext,"键盘隐藏了",Toast.LENGTH_SHORT).show();
                 }
             } else {
-                // 如果软键盘是收起的状态，并且heightDiff大于状态栏高度，
+                // 如果软键盘是收起的状态，并且height大于状态栏高度，
                 // 说明这时软键盘已经弹出
                 if (height - statusBarHeight > minKeyboardHeight) {
                     ShowKeyboard = true;

@@ -31,6 +31,10 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
     private RelativeLayout layoutMain;
     private Context mContext;
     private GestureDetector mGestureDetector;
+    // 手势滑动 高度
+    private float flingHeight ;
+    // 手势滑动速度
+    private float flingspeed = 10;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,9 +42,14 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
         mContext = this;
         setContentView(R.layout.activity_main);
         mGestureDetector = new GestureDetector(mContext, this);
+        flingHeight = getScreenHeight(this) / 10 ;
+        initView();
+        initWebview();
+    }
+    void initView(){
         mWebView = (WebView) findViewById(R.id.webview);
-        inputText = (EditText) findViewById(R.id.input_text);
         layoutMain = (RelativeLayout) findViewById(R.id.layout_main);
+        inputText = (EditText) findViewById(R.id.input_text);
         layoutMain.getViewTreeObserver().addOnGlobalLayoutListener(globalLayoutListener);
         inputText.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
@@ -52,12 +61,9 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
                 }
             }
         });
-
-        initWebview();
     }
-
     @SuppressLint("SetJavaScriptEnabled")
-    private void initWebview() {
+    void initWebview() {
         WebSettings webSettings = mWebView.getSettings();
         webSettings.setSupportZoom(false);
         webSettings.setJavaScriptEnabled(true);
@@ -70,49 +76,40 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
         mWebView.setScrollBarStyle(WebView.SCROLLBARS_INSIDE_OVERLAY);
         mWebView.loadUrl("http://zhangliwei.date");
     }
-    // 状态栏的高度
-    private int statusBarHeight;
-    // 软键盘的高度
-    private int keyboardHeight;
 
     // 软键盘的显示状态
-    private boolean isShowKeyboard;
-    // 最小键盘高度
-    private int minKeyboardHeight = 150;
+    private boolean ShowKeyboard;
 
     private ViewTreeObserver.OnGlobalLayoutListener globalLayoutListener = new ViewTreeObserver.OnGlobalLayoutListener() {
 
         @Override
         public void onGlobalLayout() {
             // 应用可以显示的区域。此处包括应用占用的区域，
-            // 以及ActionBar和状态栏，但不含设备底部的虚拟按键。
             Rect r = new Rect();
+            // 状态栏高度以及ActionBar 高度
             layoutMain.getWindowVisibleDisplayFrame(r);
-            statusBarHeight= getStatusBarHeight(mContext);
-            // 屏幕高度。这个高度不含虚拟按键的高度
+            // 键盘最小高度
+            int minKeyboardHeight = 150;
+            // 获取状态栏高度
+            int statusBarHeight = getStatusBarHeight(mContext);
+            // 屏幕高度,不含虚拟按键的高度
             int screenHeight = layoutMain.getRootView().getHeight();
-            int heightDiff = screenHeight - (r.bottom - r.top);
-
             // 在不显示软键盘时，heightDiff等于状态栏的高度
-            // 在显示软键盘时，heightDiff会变大，等于软键盘加状态栏的高度。
-            // 所以heightDiff大于状态栏高度时表示软键盘出现了，
-            // 这时可算出软键盘的高度，即heightDiff减去状态栏的高度
-            if (keyboardHeight == 0 && heightDiff > statusBarHeight) {
-                keyboardHeight = heightDiff - statusBarHeight;
-            }
+            int height = screenHeight - (r.bottom - r.top);
 
-            if (isShowKeyboard) {
+
+            if (ShowKeyboard) {
                 // 如果软键盘是弹出的状态，并且heightDiff小于等于状态栏高度，
                 // 说明这时软键盘已经收起
-                if (heightDiff - statusBarHeight < minKeyboardHeight) {
-                    isShowKeyboard = false;
+                if (height - statusBarHeight < minKeyboardHeight) {
+                    ShowKeyboard = false;
                     Toast.makeText(mContext,"键盘隐藏了",Toast.LENGTH_SHORT).show();
                 }
             } else {
                 // 如果软键盘是收起的状态，并且heightDiff大于状态栏高度，
                 // 说明这时软键盘已经弹出
-                if (heightDiff - statusBarHeight > minKeyboardHeight) {
-                    isShowKeyboard = true;
+                if (height - statusBarHeight > minKeyboardHeight) {
+                    ShowKeyboard = true;
                     Toast.makeText(mContext,"键盘显示了",Toast.LENGTH_SHORT).show();
                 }
             }
@@ -162,30 +159,35 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
         if (e1 == null || e2 == null) {
             return false;
         }
-        if (Math.abs(e2.getY() - e1.getY()) > getScreenHeight(mContext) / 10 && Math.abs(velocityX) > 10) {
-            if (isShowKeyboard) {
+        if (Math.abs(e2.getY() - e1.getY()) > flingHeight && Math.abs(velocityY) > flingspeed) {
+            if (ShowKeyboard) {
                 closeInputMethod(mContext);
             }
         }
         float r= mWebView.getHeight();
+        // WebView总高度
         float webViewContentHeight = mWebView.getContentHeight()*mWebView.getScale();
-        //WebView的现高度
+        // WebView的现高度
         float webViewCurrentHeight = (mWebView.getHeight() + mWebView.getScrollY());
 
-        if (!isShowKeyboard && e1.getY() - e2.getY() > getScreenHeight(mContext)  / 10 && webViewContentHeight - webViewCurrentHeight <= 10) {
+        if (!ShowKeyboard && e1.getY() - e2.getY() > getScreenHeight(mContext)  / 10 && webViewContentHeight - webViewCurrentHeight <= 10) {
 
             popInputMethod(inputText, mContext);
         }
         return false;
     }
-/*
-    用到的utils
- */
+
+    /**
+     * 获取屏幕高度
+     */
     public static int getScreenHeight(Context mContext){
         DisplayMetrics dm = mContext.getResources().getDisplayMetrics();
         return dm.heightPixels-getStatusBarHeight(mContext);
     }
 
+    /**
+     * 获取状态栏高度
+     */
     public static int getStatusBarHeight(Context context) {
         try {
             Class<?> c = Class.forName("com.android.internal.R$dimen");
@@ -198,6 +200,10 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
         }
         return 0;
     }
+
+    /**
+     * 显示键盘方法
+     */
     public static void popInputMethod(final EditText edittext, final Context activity) {
         edittext.requestFocus(); // edittext是一个EditText控件
         Timer timer = new Timer(); // 设置定时器
@@ -214,6 +220,10 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
 
     }
     private static InputMethodManager imm;
+
+    /**
+     * 关闭键盘方法
+     */
     public static void closeInputMethod(Context act){
         try {
             if (null == imm) {
